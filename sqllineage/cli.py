@@ -3,7 +3,14 @@ import logging
 import logging.config
 import warnings
 
-from sqllineage import DEFAULT_DIALECT, DEFAULT_HOST, DEFAULT_LOGGING, DEFAULT_PORT
+from sqllineage import (
+    DEFAULT_DIALECT,
+    DEFAULT_HOST,
+    DEFAULT_LOGGING,
+    DEFAULT_PORT,
+    NAME as MAIN_NAME,
+    VERSION as MAIN_VERSION,
+)
 from sqllineage.drawing import draw_lineage_graph
 from sqllineage.runner import LineageRunner
 from sqllineage.utils.constant import LineageLevel
@@ -22,6 +29,9 @@ def main(args=None) -> None:
 
     parser = argparse.ArgumentParser(
         prog="sqllineage", description="SQL Lineage Parser."
+    )
+    parser.add_argument(
+        "--version", action="version", version="%s %s" % (MAIN_NAME, MAIN_VERSION)
     )
     parser.add_argument(
         "-e", metavar="<quoted-query-string>", help="SQL from command line"
@@ -100,28 +110,10 @@ def main(args=None) -> None:
     elif args.graph_visualization:
         return draw_lineage_graph(**{"host": args.host, "port": args.port})
     elif args.dialects:
-        print(
-            """non-validating
-ansi
-athena
-bigquery
-clickhouse
-databricks
-db2
-exasol
-hive
-materialize
-mysql
-oracle
-postgres
-redshift
-snowflake
-soql
-sparksql
-sqlite
-teradata
-tsql"""
-        )
+        dialects = []
+        for _, supported_dialects in LineageRunner.supported_dialects().items():
+            dialects += supported_dialects
+        print("\n".join(dialects))
     else:
         parser.print_help()
 
